@@ -23,14 +23,14 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
-requests = "2.32.5"
+requests = "2.33.1"
 
 [tool.poetry.group.dev.dependencies]
 black = { extras = ["d"], version = ">=23.9,<27.0" }
 pre-commit = "4.5.1"
 pytest = "9.0.2"
-pytest-cov = "7.0.0"
-responses = "0.25.8"
+pytest-cov = "7.1.0"
+responses = "0.26.0"
 
 [build-system]
 requires = ["poetry-core"]
