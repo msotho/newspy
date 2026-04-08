@@ -13,6 +13,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: release
+          token: '${{ secrets.GITHUB_TOKEN }}'
 
       - name: Extract branch or tag name
         id: ref
@@ -33,7 +37,7 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 2.2.1
+          version: 2.3.2
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
