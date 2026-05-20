@@ -1,36 +1,28 @@
-name: CI
+name: Prelease
 
 on:
   push:
-    branches-ignore:
-      - main
-      - release
-  pull_request:
     branches:
-      - main
+      - release
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
-  test:
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+  versioning:
+    runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        shell: bash
-
-    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      - name: Set up python ${{ matrix.python-version }}
+      - name: Set up python
         id: setup-python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.14
 
       - name: Install Poetry
         uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a
@@ -43,7 +35,17 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
+      - name: Install project
+        run: poetry install --no-interaction
+
       - name: Run tests
         run: |
           source $VENV
-          pytest tests --exitfirst --verbose --failed-first --cov=newspy
+          pytest tests --exitfirst --verbose --failed-first --cov-report term --cov-report xml:coverage.xml --cov=newspy
+
+      - name: Version the release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: simple
+          target-branch: 'release'

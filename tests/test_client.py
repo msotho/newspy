@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
 
+import os
+
 import responses
 
 import newspy.client as newspy
 from newspy.models import Source, Channel, Article, Language, Category
 
-API_KEY = "seckfkdLkkekeKy"
+API_KEY = os.getenv("NEWSPY_TEST_NEWSORG_API_KEY", "test-api-key")
 
 
 def test_configure_without_newsorg_api_key() -> None:
@@ -58,11 +60,14 @@ def test_get_sources(newsorg_sources_res_json) -> None:
         }
     )
 
+    with open("tests/data/rss_sources.csv.gz", "rb") as f:
+        rss_sources_data = f.read()
+
     responses.add(
         **{
             "method": responses.GET,
             "url": "https://github.com/onemoola/newspy/blob/main/data/rss_sources.csv.gz?raw=true",
-            "body": open("tests/data/rss_sources.csv.gz", "rb").read(),
+            "body": rss_sources_data,
             "status": 200,
             "content_type": "application/zip",
         }
@@ -71,7 +76,7 @@ def test_get_sources(newsorg_sources_res_json) -> None:
     newspy.configure(newsorg_api_key=API_KEY)
     actual = newspy.get_sources()
 
-    assert actual.sort(key=lambda x: x.id) == expected.sort(key=lambda x: x.id)
+    assert sorted(actual, key=lambda x: x.id) == sorted(expected, key=lambda x: x.id)
 
 
 @responses.activate
@@ -104,7 +109,7 @@ def test_get_articles(newsorg_articles_res_json, rss_articles_res_xml) -> None:
                 name="The Wall Street Journal Markets",
                 channel=Channel.RSS,
             ),
-            published=datetime(2023, 3, 12, 13, 0, 35),
+            published=datetime(2023, 3, 12, 13, 0, 35, tzinfo=timezone.utc),
         ),
         Article(
             slug="the-wall-street-journal-markets-uk-seeks-to-tap-middle-east-money-to-buy-out-svb-unit",
@@ -119,15 +124,18 @@ def test_get_articles(newsorg_articles_res_json, rss_articles_res_xml) -> None:
                 name="The Wall Street Journal Markets",
                 channel=Channel.RSS,
             ),
-            published=datetime(2023, 3, 12, 12, 54, 53),
+            published=datetime(2023, 3, 12, 12, 54, 53, tzinfo=timezone.utc),
         ),
     ]
+
+    with open("tests/data/rss_sources.csv.gz", "rb") as f:
+        rss_sources_data = f.read()
 
     responses.add(
         **{
             "method": responses.GET,
             "url": "https://github.com/onemoola/newspy/blob/main/data/rss_sources.csv.gz?raw=true",
-            "body": open("tests/data/rss_sources.csv.gz", "rb").read(),
+            "body": rss_sources_data,
             "status": 200,
             "content_type": "application/zip",
         }
